@@ -1,0 +1,5 @@
+*.swp
+
+# Skip build / devel
+build
+devel
