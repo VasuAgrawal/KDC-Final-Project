@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
   youbot_driver
 )
 
@@ -55,11 +56,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  angle_setpoint.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -113,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES beginner_tutorials
-  CATKIN_DEPENDS roscpp rospy std_msgs youbot_driver
+  CATKIN_DEPENDS roscpp rospy std_msgs youbot_driver message_runtime
 #  DEPENDS system_lib
 )
 
@@ -165,6 +165,12 @@ target_link_libraries(youbot1 ${catkin_LIBRARIES})
 
 add_executable(hello_world_demo src/main.cpp)
 target_link_libraries(hello_world_demo ${catkin_LIBRARIES})
+
+add_executable(straight src/straight.cpp)
+target_link_libraries(straight ${catkin_LIBRARIES})
+
+# add_executable(joint_slave src/joint_slave.cpp)
+# target_link_libraries(joint_slave ${catkin_LIBRARIES})
 
 #############
 ## Install ##

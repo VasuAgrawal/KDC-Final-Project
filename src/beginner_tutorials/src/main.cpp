@@ -36,13 +36,15 @@
 * License LGPL and BSD license along with this program.
 *
 ******************************************************************************/
-
+#include <ros/ros.h>
 #include "youbot_driver/youbot/YouBotBase.hpp"
 #include "youbot_driver/youbot/YouBotManipulator.hpp"
 
 using namespace youbot;
 
 int main() {
+
+	ROS_INFO(YOUBOT_CONFIGURATIONS_DIR);
 
 	/* configuration flags for different system configuration (e.g. base without arm)*/
 	bool youBotHasBase = false;
