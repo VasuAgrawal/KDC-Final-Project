@@ -1,3 +1,3 @@
 Header header
 
-float32[5] angles
+float32[5] data
