@@ -1,6 +1,7 @@
 #include <limits>
 #include <ros/ros.h>
 
+#include "std_msgs/Float32MultiArray.h"
 #include "kdcyoubot/joint_vector.h"
 
 #include <youbot_driver/youbot/YouBotBase.hpp>
@@ -20,19 +21,23 @@ void try_set_joint_data(youbot::YouBotJoint& joint, const T& data) {
     }
 }
 
-void angle_callback(const kdcyoubot::joint_vector& msg) {
-    ROS_INFO("Called angle callback");
-    for (int i = 0; i < msg.data.size(); ++i) {
-        if (msg.data[i] != std::numeric_limits<float>::infinity()) {
-            int joint = i + 1; // Joints are 1 indexed ...
-            ROS_INFO("Sending %f radians to joint %d", msg.data[i], joint);
-            youbot::JointAngleSetpoint setpoint;
-            setpoint.angle = msg.data[i] * radians;
+// void angle_callback(const kdcyoubot::joint_vector& msg) {
+//     ROS_INFO("Called angle callback");
+//     for (int i = 0; i < msg.data.size(); ++i) {
+//         if (msg.data[i] != std::numeric_limits<float>::infinity()) {
+//             int joint = i + 1; // Joints are 1 indexed ...
+//             ROS_INFO("Sending %f radians to joint %d", msg.data[i], joint);
+//             youbot::JointAngleSetpoint setpoint;
+//             setpoint.angle = msg.data[i] * radians;
+// 
+//             try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
+//         }
+//     }
+//     return;
+// }
 
-            try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
-        }
-    }
-    return;
+void angle_callback(const std_msgs::Float32MultiArray& msg) {
+    ROS_INFO("Called angle callback");
 }
 
 void velocity_callback(const kdcyoubot::joint_vector& msg) {
@@ -100,7 +105,7 @@ void fold() {
 void send_feedback(ros::Publisher& angle_pub, ros::Publisher& velocity_pub,
         ros::Publisher& torque_pub, ros::Publisher& current_pub) {
 
-    kdcyoubot::joint_vector angle_feedback;
+    // kdcyoubot::joint_vector angle_feedback;
     kdcyoubot::joint_vector velocity_feedback;
     kdcyoubot::joint_vector torque_feedback;
     kdcyoubot::joint_vector current_feedback;
@@ -108,26 +113,32 @@ void send_feedback(ros::Publisher& angle_pub, ros::Publisher& velocity_pub,
     for (int i = 0; i < 5; ++i) {
         auto& joint = youbot_arm->getArmJoint(i + 1); // Stupid 1 indexing ...
 
-        youbot::JointSensedAngle angle;
+        // youbot::JointSensedAngle angle;
         youbot::JointSensedVelocity velocity;
         youbot::JointSensedTorque torque;
         youbot::JointSensedCurrent current;
 
-        joint.getData(angle);
+        // joint.getData(angle);
         joint.getData(velocity);
         joint.getData(torque);
         joint.getData(current);
 
-        angle_feedback.data[i] = angle.angle.value();
+        // angle_feedback.data[i] = angle.angle.value();
         velocity_feedback.data[i] = velocity.angularVelocity.value();
         torque_feedback.data[i] = torque.torque.value();
         current_feedback.data[i] = current.current.value();
     }
 
-    angle_pub.publish(angle_feedback);
+    // angle_pub.publish(angle_feedback);
     velocity_pub.publish(velocity_feedback);
     torque_pub.publish(torque_feedback);
     current_pub.publish(current_feedback);
+
+    std_msgs::Float32MultiArray angle_feedback;
+    angle_feedback.data[0] = 1.0;
+    angle_feedback.data[1] = 2.0;
+    angle_feedback.data[2] = 3.0;
+
 }
 
 /**
@@ -154,7 +165,8 @@ int main(int argc, char **argv) {
     ros::Subscriber current_sub = n.subscribe("current_setpoints", 1, current_callback);
 
     // Set up publisher for feedback messages
-    ros::Publisher angle_pub = n.advertise<kdcyoubot::joint_vector>("angle_feedback", 1000);
+    // ros::Publisher angle_pub = n.advertise<kdcyoubot::joint_vector>("angle_feedback", 1000);
+    ros::Publisher angle_pub = n.advertise<std_msgs::Float32MultiArray>("angle_feedback", 1000);
     ros::Publisher velocity_pub = n.advertise<kdcyoubot::joint_vector>("velocity_feedback", 1000);
     ros::Publisher torque_pub = n.advertise<kdcyoubot::joint_vector>("torque_feedback", 1000);
     ros::Publisher current_pub = n.advertise<kdcyoubot::joint_vector>("current_feedback", 1000);
