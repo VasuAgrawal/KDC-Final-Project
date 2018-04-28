@@ -160,6 +160,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(tester src/tester.cpp)
+target_link_libraries(tester ${catkin_LIBRARIES})
+
 add_executable(youbot1 src/youbot1.cpp)
 target_link_libraries(youbot1 ${catkin_LIBRARIES})
 
