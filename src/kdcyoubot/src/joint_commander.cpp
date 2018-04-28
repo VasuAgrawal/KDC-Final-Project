@@ -38,47 +38,47 @@ void angle_callback(const std_msgs::Float32MultiArray& msg) {
 
 void velocity_callback(const std_msgs::Float32MultiArray& msg) {
     ROS_INFO("Called velocity callback");
-    // for (int i = 0; i < msg.data.size(); ++i) {
-    //     if (msg.data[i] != std::numeric_limits<float>::infinity()) {
-    //         int joint = i + 1; // Joints are 1 indexed ...
-    //         ROS_INFO("Sending %f radians/sec to joint %d", msg.data[i], joint);
-    //         youbot::JointVelocitySetpoint setpoint;
-    //         setpoint.angularVelocity = msg.data[i] * radians_per_second;
-    // 
-    //         try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
-    //     }
-    // }
-    // return;
+    for (int i = 0; i < msg.data.size(); ++i) {
+        if (msg.data[i] != std::numeric_limits<float>::infinity()) {
+            int joint = i + 1; // Joints are 1 indexed ...
+            ROS_INFO("Sending %f radians/sec to joint %d", msg.data[i], joint);
+            youbot::JointVelocitySetpoint setpoint;
+            setpoint.angularVelocity = msg.data[i] * radians_per_second;
+    
+            try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
+        }
+    }
+    return;
 }
 
 void torque_callback(const std_msgs::Float32MultiArray& msg) {
     ROS_INFO("Called torque callback");
-    // for (int i = 0; i < msg.data.size(); ++i) {
-    //     if (msg.data[i] != std::numeric_limits<float>::infinity()) {
-    //         int joint = i + 1; // Joints are 1 indexed ...
-    //         ROS_INFO("Sending %f Nm to joint %d", msg.data[i], joint);
-    //         youbot::JointTorqueSetpoint setpoint;
-    //         setpoint.torque = msg.data[i] * newton_meters;
-    // 
-    //         try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
-    //     }
-    // }
-    // return;
+    for (int i = 0; i < msg.data.size(); ++i) {
+        if (msg.data[i] != std::numeric_limits<float>::infinity()) {
+            int joint = i + 1; // Joints are 1 indexed ...
+            ROS_INFO("Sending %f Nm to joint %d", msg.data[i], joint);
+            youbot::JointTorqueSetpoint setpoint;
+            setpoint.torque = msg.data[i] * newton_meters;
+    
+            try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
+        }
+    }
+    return;
 }
 
 void current_callback(const std_msgs::Float32MultiArray& msg) {
     ROS_INFO("Called current callback");
-    // for (int i = 0; i < msg.data.size(); ++i) {
-    //     if (msg.data[i] != std::numeric_limits<float>::infinity()) {
-    //         int joint = i + 1; // Joints are 1 indexed ...
-    //         ROS_INFO("Sending %f A to joint %d", msg.data[i], joint);
-    //         youbot::JointCurrentSetpoint setpoint;
-    //         setpoint.current = msg.data[i] * ampere;
-    // 
-    //         try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
-    //     }
-    // }
-    // return;
+    for (int i = 0; i < msg.data.size(); ++i) {
+        if (msg.data[i] != std::numeric_limits<float>::infinity()) {
+            int joint = i + 1; // Joints are 1 indexed ...
+            ROS_INFO("Sending %f A to joint %d", msg.data[i], joint);
+            youbot::JointCurrentSetpoint setpoint;
+            setpoint.current = msg.data[i] * ampere;
+    
+            try_set_joint_data(youbot_arm->getArmJoint(joint), setpoint);
+        }
+    }
+    return;
 }
 
 void fold() {
