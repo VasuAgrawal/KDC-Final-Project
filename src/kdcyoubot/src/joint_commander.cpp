@@ -2,7 +2,7 @@
 #include <ros/ros.h>
 
 #include "std_msgs/Float32MultiArray.h"
-#include "kdcyoubot/joint_vector.h"
+#include "std_msgs/Bool.h"
 
 #include <youbot_driver/youbot/YouBotBase.hpp>
 #include <youbot_driver/youbot/YouBotManipulator.hpp>
@@ -79,6 +79,14 @@ void current_callback(const std_msgs::Float32MultiArray& msg) {
         }
     }
     return;
+}
+
+void gripper_callback(const std_msgs::Bool& msg) {
+    if (msg.data) { // 1 is close
+        youbot_arm->getArmGripper().close();
+    } else { // 0 is close
+        youbot_arm->getArmGripper().open();
+    }
 }
 
 void fold() {
@@ -163,6 +171,7 @@ int main(int argc, char **argv) {
     ros::Subscriber velocity_sub = n.subscribe("velocity_setpoints", 1, velocity_callback);
     ros::Subscriber torque_sub = n.subscribe("torque_setpoints", 1, torque_callback);
     ros::Subscriber current_sub = n.subscribe("current_setpoints", 1, current_callback);
+    ros::Subscriber gripper_sub = n.subscribe("gripper_setpoint", 1, gripper_callback);
 
     // Set up publisher for feedback messages
     ros::Publisher angle_pub = n.advertise<std_msgs::Float32MultiArray>(
