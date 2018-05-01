@@ -1,7 +1,8 @@
+#include <chrono>
 #include <limits>
 #include <ros/ros.h>
 
-#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "std_msgs/Bool.h"
 
 #include <youbot_driver/youbot/YouBotBase.hpp>
@@ -21,7 +22,7 @@ void try_set_joint_data(youbot::YouBotJoint& joint, const T& data) {
     }
 }
 
-void angle_callback(const std_msgs::Float32MultiArray& msg) {
+void angle_callback(const std_msgs::Float64MultiArray& msg) {
     ROS_INFO("Called angle callback");
     for (int i = 0; i < msg.data.size(); ++i) {
         if (msg.data[i] != std::numeric_limits<float>::infinity()) {
@@ -36,7 +37,7 @@ void angle_callback(const std_msgs::Float32MultiArray& msg) {
     return;
 }
 
-void velocity_callback(const std_msgs::Float32MultiArray& msg) {
+void velocity_callback(const std_msgs::Float64MultiArray& msg) {
     ROS_INFO("Called velocity callback");
     for (int i = 0; i < msg.data.size(); ++i) {
         if (msg.data[i] != std::numeric_limits<float>::infinity()) {
@@ -51,7 +52,7 @@ void velocity_callback(const std_msgs::Float32MultiArray& msg) {
     return;
 }
 
-void torque_callback(const std_msgs::Float32MultiArray& msg) {
+void torque_callback(const std_msgs::Float64MultiArray& msg) {
     ROS_INFO("Called torque callback");
     for (int i = 0; i < msg.data.size(); ++i) {
         if (msg.data[i] != std::numeric_limits<float>::infinity()) {
@@ -66,7 +67,7 @@ void torque_callback(const std_msgs::Float32MultiArray& msg) {
     return;
 }
 
-void current_callback(const std_msgs::Float32MultiArray& msg) {
+void current_callback(const std_msgs::Float64MultiArray& msg) {
     ROS_INFO("Called current callback");
     for (int i = 0; i < msg.data.size(); ++i) {
         if (msg.data[i] != std::numeric_limits<float>::infinity()) {
@@ -110,11 +111,16 @@ void send_feedback(ros::Publisher& angle_pub, ros::Publisher& velocity_pub,
         ros::Publisher& torque_pub, ros::Publisher& current_pub, 
         ros::Publisher& combined_pub) {
 
-    std_msgs::Float32MultiArray angle_feedback;
-    std_msgs::Float32MultiArray velocity_feedback;
-    std_msgs::Float32MultiArray torque_feedback;
-    std_msgs::Float32MultiArray current_feedback;
-    std_msgs::Float32MultiArray combined_feedback;
+    std_msgs::Float64MultiArray angle_feedback;
+    std_msgs::Float64MultiArray velocity_feedback;
+    std_msgs::Float64MultiArray torque_feedback;
+    std_msgs::Float64MultiArray current_feedback;
+    std_msgs::Float64MultiArray combined_feedback;
+
+    // Add the time to the combined_feedback.
+    double now = std::chrono::duration_cast<std::chrono::duration<double>>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    combined_feedback.data.push_back(now);
 
     for (int i = 0; i < 5; ++i) {
         auto& joint = youbot_arm->getArmJoint(i + 1); // Stupid 1 indexing ...
@@ -174,15 +180,15 @@ int main(int argc, char **argv) {
     ros::Subscriber gripper_sub = n.subscribe("gripper_setpoint", 1, gripper_callback);
 
     // Set up publisher for feedback messages
-    ros::Publisher angle_pub = n.advertise<std_msgs::Float32MultiArray>(
+    ros::Publisher angle_pub = n.advertise<std_msgs::Float64MultiArray>(
             "angle_feedback", 1000);
-    ros::Publisher velocity_pub = n.advertise<std_msgs::Float32MultiArray>(
+    ros::Publisher velocity_pub = n.advertise<std_msgs::Float64MultiArray>(
             "velocity_feedback", 1000);
-    ros::Publisher torque_pub = n.advertise<std_msgs::Float32MultiArray>(
+    ros::Publisher torque_pub = n.advertise<std_msgs::Float64MultiArray>(
             "torque_feedback", 1000);
-    ros::Publisher current_pub = n.advertise<std_msgs::Float32MultiArray>(
+    ros::Publisher current_pub = n.advertise<std_msgs::Float64MultiArray>(
             "current_feedback", 1000);
-    ros::Publisher combined_pub = n.advertise<std_msgs::Float32MultiArray>(
+    ros::Publisher combined_pub = n.advertise<std_msgs::Float64MultiArray>(
             "combined_feedback", 1000);
 
     // Set up youbot arm
