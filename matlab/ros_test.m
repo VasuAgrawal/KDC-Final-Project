@@ -7,7 +7,7 @@ pub = rospublisher('/angle_setpoints', 'IsLatching', false);
 all_sub = rossubscriber('/combined_feedback');
 
 % Send it back to the "reset" position
-msg = rosmessage('std_msgs/Float32MultiArray');
+msg = rosmessage('std_msgs/Float64MultiArray');
 angle_setpoint = [pi, 0, 0, 0, 0];
 msg.Data = convertToRobotAngles(angle_setpoint);
 send(pub, msg);
@@ -16,7 +16,8 @@ fprintf("Press Enter once the robot is pointing straight up.\n");
 pause;
 
 % Now command it to go somewhere else and start recording
-angle_setpoint = [3*pi/4, pi/4, 0, pi/4, 0];
+angle_setpoint = [3*pi/2, -pi/4, pi/2, pi/2, -pi/2];
+% angle_setpoint = [pi, pi/4, 0, 0, 0];
 msg.Data = convertToRobotAngles(angle_setpoint);
 send(pub, msg);
 
@@ -26,18 +27,20 @@ angles = [];
 velocities = [];
 torques = [];
 currents = [];
+times = [];
 
-
-while 1
+while 1    
     feedback = receive(all_sub, 1);
     data = feedback.Data;
     
-    % angle, velocity, torque, current
-    angle_feedback = convertFromRobotAngles(data(1:4:end)');
-    velocity_feedback = data(2:4:end)';
-    torque_feedback = data(3:4:end)';
-    current_feedback = data(4:4:end)';
+    % time, [angle, velocity, torque, current]
+    time_feedback = data(1);
+    angle_feedback = convertFromRobotAngles(data(2:4:end)');
+    velocity_feedback = data(3:4:end)';
+    torque_feedback = data(4:4:end)';
+    current_feedback = data(5:4:end)';
     
+    times = [times; time_feedback];
     angles = [angles; angle_feedback];
     velocities = [velocities; velocity_feedback];
     torques = [torques; torque_feedback];
@@ -48,9 +51,14 @@ while 1
         fprintf("Got close enough, not recording any more.\n");
         break
     end
+    
 end
 
-save("weighted_run4.mat", "angles", "velocities", "torques", "currents");
+save("normal_run_timed3.mat", "angles", "velocities", "torques", "currents", "times");
+
+
+
+
 
 
 
