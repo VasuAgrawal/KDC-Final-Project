@@ -1,4 +1,4 @@
-filename = 'normal_run_timed3';
+filename = 'normal_run_timed1';
 
 load(strcat(filename, '.mat'));
 
@@ -17,19 +17,23 @@ t = times(2:end-1);
 
 subplot(2, 2, 1);
 plot(t, angles(2:end-1, :));
-title(strcat('Sensor Angle Measurement: ', filename), 'Interpreter', 'none');
+% title(strcat('Sensor Angle Measurement: ', filename), 'Interpreter', 'none');
+title('Sensor Angle Measurement');
 
 subplot(2, 2, 2);
 plot(t, velocities(2:end-1, :));
-title(strcat('Sensor Velocity Measurement: ', filename), 'Interpreter', 'none');
+title('Sensor Velocity Measurement');
+% title(strcat('Sensor Velocity Measurement: ', filename), 'Interpreter', 'none');
 
 subplot(2, 2, 3);
 plot(t, d_angle(2:end-1, :));
-title(strcat('Numerical Angle Derivative: ', filename), 'Interpreter', 'none');
+title('Numerical Angle Derivative');
+% title(strcat('Numerical Angle Derivative: ', filename), 'Interpreter', 'none');
 
 subplot(2, 2, 4);
 plot(t, d_vel(2:end-1, :));
-title(strcat('Numerical Velocity Derivative: ', filename), 'Interpreter', 'none');
+title('Numerical Velocity Derivative');
+% title(strcat('Numerical Velocity Derivative: ', filename), 'Interpreter', 'none');
 
 
 % save('output.mat', 'd_angle', 'd_vel');

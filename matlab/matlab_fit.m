@@ -1,12 +1,12 @@
 clear;
 close all;
 
-filename = 'weighted_run_timed3';
+filename = 'normal_run_timed1';
 
 load(strcat(filename, '.mat'));
 
 angle_diff = zeros(size(angles));
-vel_diff = zeros(size(velocities));
+angle_ddiff = zeros(size(velocities));
 
 for i = 1:5
 
@@ -37,7 +37,7 @@ for i = 1:5
     plot(x, fxx);
 
     angle_diff(:, i) = fx;
-    vel_diff(:, i) = fxx;
+    angle_ddiff(:, i) = fxx;
 end
 
-save(strcat(filename, '_diffs.mat'), 'angle_diff', 'vel_diff');
+save(strcat(filename, '_diffs.mat'), 'angle_diff', 'angle_ddiff');
