@@ -1,3 +1,7 @@
+clear;
+close all;
+clc;
+
 %% Step 1 - Compute overall manipulator inertia matrix M
 
 % Define symbolics
@@ -18,16 +22,14 @@ q4 = [0 -0.033 0.437]';
 q5 = [0 -0.033 0.518]';
 
 % Center of mass offsets of the joints
-% com_offset_1 = [0.01516 0.00359 0.03105]';
-% com_offset_2 = [0.11397 0.0150 -0.01902]';
-% com_offset_3 = [0.00013 0.10441 0.02022]';
-% com_offset_4 = [0.00015 0.05353 -0.02464]';
-% com_offset_5 = [0 0.0012 -0.01648]';
-com_offset_1 = [0 0 0.0375]';
-com_offset_2 = [0 0 0.0775]';
-com_offset_3 = [0 0 0.0675]';
-com_offset_4 = [0 0 0.0405]';
-com_offset_5 = [0 0 0.045]';
+syms o1x o2x o3x o4x o5x 'real';
+syms o1y o2y o3y o4y o5y 'real';
+syms o1z o2z o3z o4z o5z 'real';
+com_offset_1 = [o1x o1y o1z]';
+com_offset_2 = [o2x o2y o2z]';
+com_offset_3 = [o3x o3y o3z]';
+com_offset_4 = [o4x o4y o4z]';
+com_offset_5 = [o5x o5y o5z]';
 
 % Update these points to be points at the center of mass of the link
 p1_com = q1 + com_offset_1;
@@ -77,36 +79,31 @@ J4 = simplify(J4);
 J5 = simplify(J5);
 
 % Parameters of links
-syms r1 h1 r5 h5 l2 l3 l4;
-syms m1 m2 m3 m4 m5 m5_link m_obj;
-m5 = m5_link + m_obj;
-I1 = [(1/12)*m1*(3*r1^2+h1^2) (1/12)*m1*(3*r1^2+h1^2) (1/2)*m1*r1^2];
-I2 = [(1/3)*m2*l2^2 (1/2)*m2*l2^2 0];
-I3 = [(1/3)*m3*l3^2 (1/2)*m3*l3^2 0];
-I4 = [(1/3)*m4*l4^2 (1/2)*m4*l4^2 0];
-I5 = [(1/12)*m5*(3*r5^2+h5^2) (1/12)*m5*(3*r5^2+h5^2) (1/2)*m5*r5^2];
-% I1 = [0.0029525, 0.0060091, 0.0058821];
-% I2 = [0.0031145, 0.0005843, 0.0031631];
-% I3 = [0.00172767, 0.00041967, 0.0018468];
-% I4 = [0.0006764, 0.0010573, 0.0006610];
-% I5 = [0.0001934, 0.0001602, 0.0000689];
+syms m1 m2 m3 m4 m5 'real';
+syms Ix1 Iy1 Iz1 'real';
+syms Ix2 Iy2 Iz2 'real';
+syms Ix3 Iy3 Iz3 'real';
+syms Ix4 Iy4 Iz4 'real';
+syms Ix5 Iy5 Iz5 'real';
 
-% Determine the mu matrices
-M_1 = diag([m1 m1 m1 I1]);
-M_2 = diag([m2 m2 m2 I2]);
-M_3 = diag([m3 m3 m3 I3]);
-M_4 = diag([m4 m4 m4 I4]);
-M_5 = diag([m5 m5 m5 I5]);
+M_1 = diag([m1 m1 m1 Ix1 Iy1 Iz1]);
+M_2 = diag([m2 m2 m2 Ix2 Iy2 Iz2]);
+M_3 = diag([m3 m3 m3 Ix3 Iy3 Iz3]);
+M_4 = diag([m4 m4 m4 Ix4 Iy4 Iz4]);
+M_5 = diag([m5 m5 m5 Ix5 Iy5 Iz5]);
 
 % Derive the overall manipulator inertia matrix M
 M = J1'*M_1*J1 + J2'*M_2*J2 + J3'*M_3*J3 + J4'*M_4*J4 + J5'*M_5*J5;
 M = simplify(M);
+fprintf('Overall Mass Matrix \n');
 disp(M);
 
 %% Step 2 - Compute manipulator Coriolis matrix C
 syms th1_dot th2_dot th3_dot th4_dot th5_dot 'real';
+syms th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot 'real';
 th = [th1 th2 th3 th4 th5];
 th_dot = [th1_dot th2_dot th3_dot th4_dot th5_dot];
+th_ddot = [th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot];
 
 n = numel(th);
 C = sym(zeros(n));
@@ -124,6 +121,7 @@ for i = 1:n
 end
 
 C = simplify(C);
+fprintf('Overall Coriolis Matrix \n');
 disp(C);
 
 %% Step 3 - Compute N, the potential energy matrix
@@ -160,192 +158,108 @@ N = [diff(V, th1);
      diff(V, th3);
      diff(V, th4);
      diff(V, th5)];
+ 
 N = simplify(N);
+fprintf('Overall Normal Matrix \n');
 disp(N);
 
-%% Step 4 - Compute the Equations of Motion
+%% Step 4 - Compute The Equations of Motion
 
-% syms t TH1(t) TH2(t) TH3(t) TH4(t) TH5(t) 'real';
-% 
-% % Define new symbolics which let theta be a function of t
-% TH1_dot = diff(TH1, t);
-% TH2_dot = diff(TH2, t);
-% TH3_dot = diff(TH3, t);
-% TH4_dot = diff(TH4, t);
-% TH5_dot = diff(TH5, t);
-% TH1_ddot = diff(TH1_dot, t);
-% TH2_ddot = diff(TH2_dot, t);
-% TH3_ddot = diff(TH3_dot, t);
-% TH4_ddot = diff(TH4_dot, t);
-% TH5_ddot = diff(TH5_dot, t);
-% 
-% % Define some convenience vectors for the multiplication
-% %TH = [TH1; TH2; TH3; TH4; TH5];
-% %TH_dot = [TH1_dot; TH2_dot; TH3_dot; TH4_dot; TH5_dot];
-% %TH_ddot = [TH1_ddot; TH2_ddot; TH3_ddot; TH4_ddot; TH5_ddot];
-% TH = [0; 0; 0; 0; pi/2];
-% TH_dot = [1; 1; 1; 1; 1];
-% TH_ddot = [1; 1; 1; 1; 1];
-% 
-% % Measured parameters from robot arm
-% temp_TH = angles(10,:);
-% temp_THdot = velocities(10,:);
-% temp_THddot = (circshift(velocities(10,:),1) - velocities(10,:)) ./ 0.0209;
-% temp_torques = torques(10,:);
+syms T1 T2 T3 T4 T5 'real';
+T = [T1 T2 T3 T4 T5];
 
-syms th1_dot th2_dot th3_dot th4_dot th5_dot;
-syms th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot;
+EoM = M * th_ddot' + C * th_dot' + N;
+eqns = EoM == T';
+eqns = simplify(eqns);
+save('eoms.mat');
 
-TH_dot = [th1_dot th2_dot th3_dot th4_dot th5_dot]';
-TH_ddot = [th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot]';
+%% Step 5 - Substitute in the nonlinear parameters into the equations
 
-% Create the equations of motion
-eom = M * TH_ddot + C * TH_dot + N;
+params = struct;
 
-%% Substitute and Solve for m_obj
+params.m1 = 1.390; %kg
+params.m2 = 1.318; %kg
+params.m3 = 0.821; %kg
+params.m4 = 0.769; %kg
+params.m5 = 0.687 + 0.199 + 0.010 + 0.010; %kg
 
-solved_mass = zeros(5, size(angles, 1));
-for i = 1:size(angles,1)
-    tic
-    % Construct the parameters for this point of feedback
-    params = struct;
-    params.m1 = 1.39;
-    params.m2 = 1.318;
-    params.m3 = 0.821;
-    params.m4 = 0.769;
-    params.m5_link = 0.687;
-    params.r1 = 0.13;
-    params.h1 = 0.075;
-    params.r5 = 0.07;
-    params.h5 = 0.09;
-    params.l2 = 0.155;
-    params.l3 = 0.135;
-    params.l4 = 0.081;
-    params.th1 = angles(i,1);
-    params.th2 = angles(i,2);
-    params.th3 = angles(i,3);
-    params.th4 = angles(i,4);
-    params.th5 = angles(i,5);
-    params.th1_dot = velocities(i,1);
-    params.th2_dot = velocities(i,2);
-    params.th3_dot = velocities(i,3);
-    params.th4_dot = velocities(i,4);
-    params.th5_dot = velocities(i,5);
-    params.th1_ddot = accelerations(i,1);
-    params.th2_ddot = accelerations(i,2);
-    params.th3_ddot = accelerations(i,3);
-    params.th4_ddot = accelerations(i,4);
-    params.th5_ddot = accelerations(i,5);
-    
-    eom_sub = subs(eom, params);
-    eom_sub = simplify(eom_sub);
-    
-%     current_masses = [
-%         double(solve(eom_sub(1) == torques(1,1)));
-%         double(solve(eom_sub(2) == torques(1,2)));
-%         double(solve(eom_sub(3) == torques(1,3)));
-%         double(solve(eom_sub(4) == torques(1,4)));
-%         double(solve(eom_sub(5) == torques(1,5)));
-%     ];
-    current_masses = zeros(1, 5);
-%     for j=1:5
-%     current_masses(1) = double(solve(eom_sub(1) == torques(i,1)));
-    current_masses(2) = double(solve(eom_sub(2) == torques(i,2)));
-    current_masses(3) = double(solve(eom_sub(3) == torques(i,3)));
-    current_masses(4) = double(solve(eom_sub(4) == torques(i,4)));
-%     current_masses(5) = double(solve(eom_sub(5) == torques(i,5)'));
-%     end
-    solved_mass(:, i) = current_masses;
-    toc
-end
+mass_sub = subs(eqns, params);
 
-%% Attempt to compute weight of object
-temp_TH = angles(10,:);
-temp_THdot = velocities(10,:);
-temp_THddot = (circshift(velocities(10,:),1) - velocities(10,:)) ./ 0.0209;
-temp_torques = torques(10,:);
+syms u1x u2x u3x u4x u5x 'real';
+syms u1y u2y u3y u4y u5y 'real';
+syms u1z u2z u3z u4z u5z 'real';
+square_sub = expand(mass_sub);
 
+square_sub = subs(square_sub, o1x^2, u1x);
+square_sub = subs(square_sub, o2x^2, u2x);
+square_sub = subs(square_sub, o3x^2, u3x);
+square_sub = subs(square_sub, o4x^2, u4x);
+square_sub = subs(square_sub, o5x^2, u5x);
 
+square_sub = subs(square_sub, o1y^2, u1y);
+square_sub = subs(square_sub, o2y^2, u2y);
+square_sub = subs(square_sub, o3y^2, u3y);
+square_sub = subs(square_sub, o4y^2, u4y);
+square_sub = subs(square_sub, o5y^2, u5y);
 
-%% Controller - Analytic Solution
+square_sub = subs(square_sub, o1z^2, u1z);
+square_sub = subs(square_sub, o2z^2, u2z);
+square_sub = subs(square_sub, o3z^2, u3z);
+square_sub = subs(square_sub, o4z^2, u4z);
+square_sub = subs(square_sub, o5z^2, u5z);
 
-% Set the initial and desired parameters.
-initial = [0 0 0 0 0]';
-desired = [0, 0, 0, 0, 0.01]';
+syms u1xy u1yz u1xz 'real';
+syms u2xy u2yz u2xz 'real';
+syms u3xy u3yz u3xz 'real';
+syms u4xy u4yz u4xz 'real';
+syms u5xy u5yz u5xz 'real';
+cross_sub = expand(square_sub);
 
-% Gains
-kp = [50 50 50 50 50]';
-kd = [10 10 10 10 10]';
+cross_sub = subs(cross_sub, o1x*o1y, u1xy);
+cross_sub = subs(cross_sub, o1y*o1z, u1yz);
+cross_sub = subs(cross_sub, o1x*o1z, u1xz);
 
-% Analytic solution
-fake_feedback = [0 0 0 0 0]';
-error = fake_feedback - desired;
-derror = [0 0 0 0 0]';
+cross_sub = subs(cross_sub, o2x*o2y, u2xy);
+cross_sub = subs(cross_sub, o2y*o2z, u2yz);
+cross_sub = subs(cross_sub, o2x*o2z, u2xz);
 
-theta_feedback = struct;
-theta_feedback.th1 = 0;
-theta_feedback.th2 = 0;
-theta_feedback.th3 = 0;
-theta_feedback.th4 = 0;
-theta_feedback.th5 = 0;
+cross_sub = subs(cross_sub, o3x*o3y, u3xy);
+cross_sub = subs(cross_sub, o3y*o3z, u3yz);
+cross_sub = subs(cross_sub, o3x*o3z, u3xz);
 
-command_torques = M*(-diag(kd)*derror - diag(kp)*error) + N;
-command_torques = subs(command_torques, theta_feedback);
-disp(double(command_torques))
+cross_sub = subs(cross_sub, o4x*o4y, u4xy);
+cross_sub = subs(cross_sub, o4y*o4z, u4yz);
+cross_sub = subs(cross_sub, o4x*o4z, u4xz);
 
-%% ODE45 Method
+cross_sub = subs(cross_sub, o5x*o5y, u5xy);
+cross_sub = subs(cross_sub, o5y*o5z, u5yz);
+cross_sub = subs(cross_sub, o5x*o5z, u5xz);
 
-% Set the initial and desired parameters.
-initial = [0 0 0 0 0 0 0 0 0 0]';
-desired = [0, 0, 0, 0, pi/2, 0, 0, 0, 0, 0]';
+params = struct;
+params.th1 = 1;
+params.th2 = 1;
+params.th3 = 1;
+params.th4 = 1;
+params.th5 = 1;
+params.th1_dot = 1;
+params.th2_dot = 1;
+params.th3_dot = 1;
+params.th4_dot = 1;
+params.th5_dot = 1;
+params.th1_ddot = 1;
+params.th2_ddot = 1;
+params.th3_ddot = 1;
+params.th4_ddot = 1;
+params.th5_ddot = 1;
+params.T1 = 1;
+params.T2 = 1;
+params.T3 = 1;
+params.T4 = 1;
+params.T5 = 1;
 
-% Create the controller. Here the controller only operates on angular error
-% and not velocity error. Seems to work well enough.
-kp = [50 50 50 50 50]';
-kd = [10 10 10 10 10]';
-error = desired(1:5) - TH;
-controller = kp .* error + kd .* diff(error, t);
+th_sub = subs(cross_sub, params);
 
-% Solve based on matlab reference.
-% https://www.mathworks.com/help/symbolic/examples/solve-a-second-order-differential-equation-numerically.html?requestedDomain=true
-time = [0 15];
-[V, S] = odeToVectorField(eom == controller);
-M = matlabFunction(V, 'vars', {'t', 'Y'});
-sol = ode45(M, time, initial);
+vars = symvar(th_sub);
 
-% Plot all the things.
-subplot(2, 3, 1);
-fplot(@(x)deval(sol, x, 3), time);
-ref = refline(0, desired(1));
-ref.Color = 'r';
-title('TH1')
-
-subplot(2, 3, 2);
-fplot(@(x)deval(sol, x, 1), time);
-ref = refline(0, desired(2));
-ref.Color = 'r';
-title('TH2');
-
-subplot(2, 3, 3);
-fplot(@(x)deval(sol, x, 5), time);
-ref = refline(0, desired(3));
-ref.Color = 'r';
-title('TH3');
-
-subplot(2, 3, 4);
-fplot(@(x)deval(sol, x, 4), time);
-ref = refline(0, desired(4));
-ref.Color = 'r';
-title('DTH1')
-
-subplot(2, 3, 5);
-fplot(@(x)deval(sol, x, 2), time);
-ref = refline(0, desired(5));
-ref.Color = 'r';
-title('DTH2');
-
-subplot(2, 3, 6);
-fplot(@(x)deval(sol, x, 6), time);
-ref = refline(0, desired(6));
-ref.Color = 'r';
-title('DTH3');
+[A, b] = equationsToMatrix(cross_sub, vars);
+save('eoms.mat');
