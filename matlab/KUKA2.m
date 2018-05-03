@@ -53,18 +53,23 @@ w4 = [1 0 0]';
 w5 = [0 0 -1]';
 
 % Determine points along each axis (again in the base frame)
-q1 = [0 0 72]';
-q2 = [0 -33 147]';
-q3 = [0 -33 302]';
-q4 = [0 -33 437]';
-q5 = [0 -33 518]';
+q1 = [0 0 0.072]';
+q2 = [0 -0.033 0.147]';
+q3 = [0 -0.033 0.302]';
+q4 = [0 -0.033 0.437]';
+q5 = [0 -0.033 0.518]';
 
 % Center of mass offsets of the joints
-com_offset_1 = [15.16 3.59 31.05]';
-com_offset_2 = [113.97 15.0 -19.02]';
-com_offset_3 = [0.13 104.41 20.22]';
-com_offset_4 = [0.15 53.53 -24.64]';
-com_offset_5 = [0 1.2 -16.48]';
+% com_offset_1 = [0.01516 0.00359 0.03105]';
+% com_offset_2 = [0.11397 0.0150 -0.01902]';
+% com_offset_3 = [0.00013 0.10441 0.02022]';
+% com_offset_4 = [0.00015 0.05353 -0.02464]';
+% com_offset_5 = [0 0.0012 -0.01648]';
+com_offset_1 = [0 0 0.0375]';
+com_offset_2 = [0 0 0.0775]';
+com_offset_3 = [0 0 0.0675]';
+com_offset_4 = [0 0 0.0405]';
+com_offset_5 = [0 0 0.045]';
 
 % Update these points to be points at the center of mass of the link
 p1_com = q1 + com_offset_1;
@@ -114,16 +119,19 @@ J4 = simplify(J4);
 J5 = simplify(J5);
 
 % Parameters of links
-m1 = 1.39;
-m2 = 1.318;
-m3 = 0.821;
-m4 = 0.769;
-m5 = 0.687;
-I1 = [0.0029525, 0.0060091, 0.0058821];
-I2 = [0.0031145, 0.0005843, 0.0031631];
-I3 = [0.00172767, 0.00041967, 0.0018468];
-I4 = [0.0006764, 0.0010573, 0.0006610];
-I5 = [0.0001934, 0.0001602, 0.0000689];
+syms r1 h1 r5 h5 l2 l3 l4;
+syms m1 m2 m3 m4 m5 m5_link m_obj;
+m5 = m5_link + m_obj;
+I1 = [(1/12)*m1*(3*r1^2+h1^2) (1/12)*m1*(3*r1^2+h1^2) (1/2)*m1*r1^2];
+I2 = [(1/3)*m2*l2^2 (1/2)*m2*l2^2 0];
+I3 = [(1/3)*m3*l3^2 (1/2)*m3*l3^2 0];
+I4 = [(1/3)*m4*l4^2 (1/2)*m4*l4^2 0];
+I5 = [(1/12)*m5*(3*r5^2+h5^2) (1/12)*m5*(3*r5^2+h5^2) (1/2)*m5*r5^2];
+% I1 = [0.0029525, 0.0060091, 0.0058821];
+% I2 = [0.0031145, 0.0005843, 0.0031631];
+% I3 = [0.00172767, 0.00041967, 0.0018468];
+% I4 = [0.0006764, 0.0010573, 0.0006610];
+% I5 = [0.0001934, 0.0001602, 0.0000689];
 
 % Determine the mu matrices
 M_1 = diag([m1 m1 m1 I1]);
@@ -199,44 +207,107 @@ disp(N);
 
 %% Step 4 - Compute the Equations of Motion
 
-syms t TH1(t) TH2(t) TH3(t) TH4(t) TH5(t) 'real';
+% syms t TH1(t) TH2(t) TH3(t) TH4(t) TH5(t) 'real';
+% 
+% % Define new symbolics which let theta be a function of t
+% TH1_dot = diff(TH1, t);
+% TH2_dot = diff(TH2, t);
+% TH3_dot = diff(TH3, t);
+% TH4_dot = diff(TH4, t);
+% TH5_dot = diff(TH5, t);
+% TH1_ddot = diff(TH1_dot, t);
+% TH2_ddot = diff(TH2_dot, t);
+% TH3_ddot = diff(TH3_dot, t);
+% TH4_ddot = diff(TH4_dot, t);
+% TH5_ddot = diff(TH5_dot, t);
+% 
+% % Define some convenience vectors for the multiplication
+% %TH = [TH1; TH2; TH3; TH4; TH5];
+% %TH_dot = [TH1_dot; TH2_dot; TH3_dot; TH4_dot; TH5_dot];
+% %TH_ddot = [TH1_ddot; TH2_ddot; TH3_ddot; TH4_ddot; TH5_ddot];
+% TH = [0; 0; 0; 0; pi/2];
+% TH_dot = [1; 1; 1; 1; 1];
+% TH_ddot = [1; 1; 1; 1; 1];
+% 
+% % Measured parameters from robot arm
+% temp_TH = angles(10,:);
+% temp_THdot = velocities(10,:);
+% temp_THddot = (circshift(velocities(10,:),1) - velocities(10,:)) ./ 0.0209;
+% temp_torques = torques(10,:);
 
-% Define new symbolics which let theta be a function of t
-TH1_dot = diff(TH1, t);
-TH2_dot = diff(TH2, t);
-TH3_dot = diff(TH3, t);
-TH4_dot = diff(TH4, t);
-TH5_dot = diff(TH5, t);
-TH1_ddot = diff(TH1_dot, t);
-TH2_ddot = diff(TH2_dot, t);
-TH3_ddot = diff(TH3_dot, t);
-TH4_ddot = diff(TH4_dot, t);
-TH5_ddot = diff(TH5_dot, t);
+syms th1_dot th2_dot th3_dot th4_dot th5_dot;
+syms th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot;
 
-% Define some convenience vectors for the multiplication
-TH = [TH1; TH2; TH3; TH4; TH5];
-TH_dot = [TH1_dot; TH2_dot; TH3_dot; TH4_dot; TH5_dot];
-TH_ddot = [TH1_ddot; TH2_ddot; TH3_ddot; TH4_ddot; TH5_ddot];
+TH_dot = [th1_dot th2_dot th3_dot th4_dot th5_dot]';
+TH_ddot = [th1_ddot th2_ddot th3_ddot th4_ddot th5_ddot]';
 
 % Create the equations of motion
 eom = M * TH_ddot + C * TH_dot + N;
 
-% Substitute in for the parameters
-params = struct;
-params.th1 = TH1;
-params.th2 = TH2;
-params.th3 = TH3;
-params.th4 = TH4;
-params.th5 = TH5;
-params.th1_dot = TH1_dot;
-params.th2_dot = TH2_dot;
-params.th3_dot = TH3_dot;
-params.th4_dot = TH4_dot;
-params.th5_dot = TH5_dot;
+%% Substitute and Solve for m_obj
 
-% Substitute parameters
-eom = subs(eom, params);
-eom = simplify(eom);
+solved_mass = zeros(5, size(angles, 1));
+for i = 1:size(angles,1)
+    tic
+    % Construct the parameters for this point of feedback
+    params = struct;
+    params.m1 = 1.39;
+    params.m2 = 1.318;
+    params.m3 = 0.821;
+    params.m4 = 0.769;
+    params.m5_link = 0.687;
+    params.r1 = 0.13;
+    params.h1 = 0.075;
+    params.r5 = 0.07;
+    params.h5 = 0.09;
+    params.l2 = 0.155;
+    params.l3 = 0.135;
+    params.l4 = 0.081;
+    params.th1 = angles(i,1);
+    params.th2 = angles(i,2);
+    params.th3 = angles(i,3);
+    params.th4 = angles(i,4);
+    params.th5 = angles(i,5);
+    params.th1_dot = velocities(i,1);
+    params.th2_dot = velocities(i,2);
+    params.th3_dot = velocities(i,3);
+    params.th4_dot = velocities(i,4);
+    params.th5_dot = velocities(i,5);
+    params.th1_ddot = accelerations(i,1);
+    params.th2_ddot = accelerations(i,2);
+    params.th3_ddot = accelerations(i,3);
+    params.th4_ddot = accelerations(i,4);
+    params.th5_ddot = accelerations(i,5);
+    
+    eom_sub = subs(eom, params);
+    eom_sub = simplify(eom_sub);
+    
+%     current_masses = [
+%         double(solve(eom_sub(1) == torques(1,1)));
+%         double(solve(eom_sub(2) == torques(1,2)));
+%         double(solve(eom_sub(3) == torques(1,3)));
+%         double(solve(eom_sub(4) == torques(1,4)));
+%         double(solve(eom_sub(5) == torques(1,5)));
+%     ];
+    current_masses = zeros(1, 5);
+%     for j=1:5
+%     current_masses(1) = double(solve(eom_sub(1) == torques(i,1)));
+    current_masses(2) = double(solve(eom_sub(2) == torques(i,2)));
+    current_masses(3) = double(solve(eom_sub(3) == torques(i,3)));
+    current_masses(4) = double(solve(eom_sub(4) == torques(i,4)));
+%     current_masses(5) = double(solve(eom_sub(5) == torques(i,5)'));
+%     end
+    solved_mass(:, i) = current_masses;
+    toc
+end
+
+%% Attempt to compute weight of object
+temp_TH = angles(10,:);
+temp_THdot = velocities(10,:);
+temp_THddot = (circshift(velocities(10,:),1) - velocities(10,:)) ./ 0.0209;
+temp_torques = torques(10,:);
+
+
 
 %% Controller - Analytic Solution
 
